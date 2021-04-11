@@ -1,0 +1,23 @@
+{
+  "name": "slither-leaderboard",
+  "version": "0.0.1",
+  "description": "Slither.io Leaderboard Tracking",
+  "main": "src/index.js",
+  "repository": "https://github.com/RafaelFontes/slither-leaderboard",
+  "author": "Rafael Fontes",
+  "license": "MIT",
+  "scripts": {
+    "leaderboard": "node cli.js -l -u 185.50.104.152:444",
+    "server-list": "node cli.js -sv",
+    "spawner": "node cli.js -t",
+    "t10lh": "node cli.js --top10LastHour",
+    "t10lhc5": "node cli.js --top10LastHourCluster5",
+    "json": "node cli.js -j -f"
+  },
+  "dependencies": {
+    "argv-parser": "^0.1.4",
+    "bufferutil": "^4.0.3",
+    "mongodb": "^3.6.6",
+    "utf-8-validate": "^5.0.4"
+  }
+}
