@@ -4,6 +4,7 @@ import ScoreCollection from '../db/collections/score';
 import ServerCollection, { ServerType } from '../db/collections/server';
 import Command from '../decorators/command';
 import saveTop100LastMonthGlobal from './json-commands/save-top100-lastMonth-global';
+import saveTop100LastMonthRegion from './json-commands/save-top100-lastMonth-region';
 
 const WebSocketClient = require('../lib/websocket/websocket-client.js');
 const parseBinaryData = require('../utils/parse-binary-data.js');
@@ -31,6 +32,7 @@ function writeJsonFiles() {
   return new Promise(async resolve => {
     try {
       await saveTop100LastMonthGlobal();
+      await saveTop100LastMonthRegion();
     } catch (ex) {
       console.log('writeJsonFiles', ex);
     } finally {
