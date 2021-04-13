@@ -26,10 +26,7 @@ export default async function saveTop100LastMonthGlobal() {
   const jsonToSave = JSON.stringify(
     result.map((entry: any, index: number) => ({
       position: index + 1,
-      userName: entry.data.userName,
-      timestamp: entry.data.timestamp,
-      server: entry.data.server,
-      score: entry.score,
+      ...entry,
     })),
   );
 
@@ -43,9 +40,10 @@ export default async function saveTop100LastMonthGlobal() {
   } else {
     console.log(util.inspect(aggregation, false, null, false));
     fs.writeFileSync(
-      `top100-global-month-${currentDate.getUTCFullYear()}-${String(
-        currentDate.getUTCMonth() + 1,
-      ).padStart(2, '0')}.json`,
+      `top100-global-month-${currentDate.getUTCFullYear()}-${String(currentDate.getUTCMonth() + 1).padStart(
+        2,
+        '0',
+      )}.json`,
       jsonToSave,
     );
   }

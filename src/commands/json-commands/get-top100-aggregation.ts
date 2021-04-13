@@ -4,21 +4,30 @@ export default function getTop100Aggregation($match: object) {
       $match: $match,
     },
     {
+      $sort: {
+        score: -1,
+      },
+    },
+    {
       $group: {
         _id: {
           userName: '$userName',
         },
-        score: {
-          $max: '$score',
-        },
         data: {
-          $last: '$$ROOT',
+          $first: '$$ROOT',
+        },
+      },
+    },
+    {
+      $replaceRoot: {
+        newRoot: {
+          $mergeObjects: [ '$data' ]
         }
       },
     },
     {
       $sort: {
-        score: -1,
+        'score': -1,
       },
     },
     {
