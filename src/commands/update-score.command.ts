@@ -28,10 +28,9 @@ export class UpdateScoreCommand extends CommandAbstract {
 }
 
 function writeJsonFiles() {
-  return new Promise(async (resolve) => {
+  return new Promise(async resolve => {
     try {
       await saveTop100LastMonthGlobal();
-
     } catch (ex) {
       console.log('writeJsonFiles', ex);
     } finally {
@@ -71,15 +70,11 @@ function startRetrievingData(servers: ServerType[], index = 0) {
       });
 
       connection.on('close', (reason: any) => {
-        if (reason === 1000) {
-          return new Promise(_resolve => {
-            setTimeout(() => {
-              _resolve(startRetrievingData(servers, index + 1));
-            }, 1000);
-          });
-        } else {
-          reject(new Error(reason));
-        }
+        return new Promise(_resolve => {
+          setTimeout(() => {
+            _resolve(startRetrievingData(servers, index + 1));
+          }, 1000);
+        });
       });
 
       connection.on('message', async (message: any) => {
