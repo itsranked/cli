@@ -12,7 +12,7 @@ export default async function saveTop100LastMonthGlobal() {
 
   const bannedUsers = ['F L A M E  T H R O W E R'];
 
-  const bannedServers = ['149.56.20.72:444'];
+  const bannedServers = ['149.56.20.72:444', '209.58.183.133:444'];
 
   const result = await ScoreCollection.aggregate(
     getTop100Aggregation({
