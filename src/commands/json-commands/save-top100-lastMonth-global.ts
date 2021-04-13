@@ -10,10 +10,15 @@ export default async function saveTop100LastMonthGlobal() {
   currentDate.setUTCSeconds(0);
   currentDate.setUTCMilliseconds(0);
 
+  const bannedUsers = ['F L A M E  T H R O W E R'];
+
+  const bannedServers = ['149.56.20.72:444'];
+
   const result = await ScoreCollection.aggregate(
     getTop100Aggregation({
       timestamp: { $gte: currentDate },
-      userName: {$ne:'F L A M E  T H R O W E R'}
+      userName: { $nin: bannedUsers },
+      address: { $nin: bannedServers },
     }),
   );
 
@@ -29,10 +34,9 @@ export default async function saveTop100LastMonthGlobal() {
 
   if (fs.existsSync('/home/ubuntu/website/build')) {
     fs.writeFileSync(
-      `/home/ubuntu/website/build/top100-global-month-${currentDate.getUTCFullYear()}-${String(currentDate.getUTCMonth() + 1).padStart(
-        2,
-        '0',
-      )}.json`,
+      `/home/ubuntu/website/build/top100-global-month-${currentDate.getUTCFullYear()}-${String(
+        currentDate.getUTCMonth() + 1,
+      ).padStart(2, '0')}.json`,
       jsonToSave,
     );
   }
