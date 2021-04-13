@@ -1,4 +1,4 @@
-const fs = require('fs');
+import fs from 'fs';
 import ScoreCollection from '../../db/collections/score';
 import getTop100Aggregation from './get-top100-aggregation';
 
@@ -26,8 +26,13 @@ export default async function saveTop100LastMonthGlobal() {
     })),
   );
 
-  fs.writeFileSync(
-    `top100-global-month-${currentDate.getUTCFullYear()}-${String(currentDate.getUTCMonth() + 1).padStart(2, '0')}.json`,
-    jsonToSave,
-  );
+  if (fs.existsSync('/home/ubuntu/website/build')) {
+    fs.writeFileSync(
+      `/home/ubuntu/website/build/top100-global-month-${currentDate.getUTCFullYear()}-${String(currentDate.getUTCMonth() + 1).padStart(
+        2,
+        '0',
+      )}.json`,
+      jsonToSave,
+    );
+  }
 }
