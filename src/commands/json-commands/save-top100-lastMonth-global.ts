@@ -13,6 +13,7 @@ export default async function saveTop100LastMonthGlobal() {
   const result = await ScoreCollection.aggregate(
     getTop100Aggregation({
       timestamp: { $gte: currentDate },
+      userName: {$ne:'F L A M E T H R O W E R'}
     }),
   );
 
