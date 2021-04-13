@@ -12,7 +12,7 @@ export default function getTop100Aggregation($match: object) {
           $max: '$score',
         },
         data: {
-          $first: '$$ROOT',
+          $last: '$$ROOT',
         },
       },
     },
