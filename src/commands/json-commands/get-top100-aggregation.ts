@@ -13,7 +13,7 @@ export default function getTop100Aggregation($match: object) {
         },
         data: {
           $last: '$$ROOT',
-        },
+        }
       },
     },
     {
