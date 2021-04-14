@@ -5,6 +5,7 @@ import ScoreCollection from '../db/collections/score';
 import ServerCollection, { ServerType } from '../db/collections/server';
 import Command from '../decorators/command';
 import saveTop100 from './json-commands/save-top100';
+import bannedServers from './json-commands/banned-servers.json';
 
 const WebSocketClient = require('../lib/websocket/websocket-client.js');
 const parseBinaryData = require('../utils/parse-binary-data.js');
@@ -16,7 +17,9 @@ export class UpdateScoreCommand extends CommandAbstract {
   execute(args: CommandArgType): Promise<number> {
     return new Promise(async (resolve, reject) => {
       try {
-        const servers = await ServerCollection.find();
+        const servers = await ServerCollection.find({
+          server: { $nin: bannedServers },
+        });
 
         await startRetrievingData(servers);
 
@@ -29,7 +32,7 @@ export class UpdateScoreCommand extends CommandAbstract {
 }
 
 function writeJsonFiles() {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve) => {
     try {
       await saveTop100();
     } catch (ex) {
@@ -70,7 +73,7 @@ function startRetrievingData(servers: ServerType[], index = 0) {
       });
 
       connection.on('close', (reason: any) => {
-        return new Promise(_resolve => {
+        return new Promise((_resolve) => {
           setTimeout(() => {
             _resolve(startRetrievingData(servers, index + 1));
           }, 1000);

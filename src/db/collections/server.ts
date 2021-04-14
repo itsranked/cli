@@ -1,4 +1,4 @@
-import { InsertWriteOpResult } from 'mongodb';
+import { FilterQuery, InsertWriteOpResult } from 'mongodb';
 import Collection from '../collection';
 
 export type ServerType = {
@@ -20,10 +20,10 @@ export default class ServerCollection {
     });
   }
 
-  static find(): Promise<ServerType[]> {
+  static find(query?: FilterQuery<ServerType>): Promise<ServerType[]> {
     return new Promise(async (resolve, reject) => {
       try {
-      const result = await ServerCollection.ServerCollectionInstance.find();
+      const result = await ServerCollection.ServerCollectionInstance.find(query);
 
       resolve(result.toArray());
       } catch (ex) {
