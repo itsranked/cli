@@ -3,13 +3,131 @@ import yargs from 'yargs';
 import CommandAbstract, { CommandArgType } from '../common/command';
 import Logger from '../common/logger';
 import ScoreCollection from '../db/collections/score';
-import ServerCollection, { ServerType } from '../db/collections/server';
+import { ServerType } from '../db/collections/server';
 import Command from '../decorators/command';
+import settings from '../settings.json';
+import fetchText from '../utils/fetch-text';
 import saveTop100 from './json-commands/save-top100';
-import bannedServers from './json-commands/banned-servers.json';
 
 const WebSocketClient = require('../lib/websocket/websocket-client.js');
 const parseBinaryData = require('../utils/parse-binary-data.js');
+
+async function spawnConnection(server: string, onScore: (data: any[]) => void) {
+  const client = new WebSocketClient();
+  let receivedPong = false;
+  let receivedLeaderboard = false;
+
+  let pingInterval: NodeJS.Timeout;
+
+  function restart() {
+    setTimeout(async () => {
+      clearInterval(pingInterval);
+      spawnConnection(server, onScore);
+    }, 1000);
+  }
+
+  client.on('connectFailed', (err: any) => {
+    Logger.error('connectFailed', err);
+    restart();
+  });
+
+  client.on('connect', (connection: any) => {
+    pingInterval = setInterval(() => {
+      if (receivedPong) {
+        if (connection.connected) {
+          connection.sendBytes(Buffer.from(new Uint8Array([0xfb]))); // PING command
+        }
+
+        receivedPong = false;
+      }
+      connection.send;
+    }, 250);
+
+    connection.sendBytes(Buffer.from(new Uint8Array([0x63]))); // Start handshake
+
+    connection.on('error', (error: any) => {
+      Logger.error('connection error', error);
+      restart();
+    });
+
+    connection.on('close', () => {
+      restart();
+    });
+
+    connection.on('message', async (message: any) => {
+      if (message.type === 'binary') {
+        const parsed = parseBinaryData(connection, message.binaryData);
+
+        if (parsed.command) {
+          if (parsed.command === 'SAVE_SCORES') {
+            const scoreList = parsed.data.map((entry: any) => ({ ...entry, server, timestamp: new Date() }));
+
+            if (!receivedLeaderboard) {
+              connection.sendBytes(Buffer.from(new Uint8Array([0xfb]))); // PING command
+              receivedLeaderboard = true;
+            }
+
+            onScore(scoreList);
+          }
+
+          if (parsed.command === 'DEAD') {
+            connection.close();
+          }
+
+          if (parsed.command === 'PONG') {
+            receivedPong = true;
+          }
+        }
+      }
+    });
+  });
+
+  client.connect(`ws://${server}/slither`, null, 'http://slither.io', null, {});
+}
+
+function waitForTop10AndStoreIt(servers: string[]) {
+  const scores = [] as any[];
+
+  servers
+    .filter((server) => !settings.bannedServers.includes(server))
+    .forEach((server) => {
+      spawnConnection(server, (data: any[]) => {
+        const totalScore = data.reduce((result, entry) => result + entry.score, 0);
+        const avgScore = totalScore / data.length;
+
+        if (avgScore >= settings.minimumScoreToRank) {
+          scores.push.apply(scores, data);
+        }
+      });
+    });
+
+  async function saveScores() {
+    const dataToSave = [] as any[];
+
+    if (scores.length > 0) {
+      while (scores.length > 0) {
+        const entry = scores.shift();
+        if (entry.userName.trim() !== '' && entry.score > settings.minimumScoreToRank) {
+          dataToSave.push(entry);
+        }
+      }
+
+      if (dataToSave.length > 0) {
+        Logger.info(`Saving ${dataToSave.length} scores`);
+
+        await ScoreCollection.save(dataToSave);
+      }
+    }
+
+    setTimeout(() => {
+      saveScores();
+    }, 1000);
+  }
+
+  setTimeout(() => {
+    saveScores();
+  }, 1000);
+}
 
 @Command('update-score', 'Updates scores')
 export class UpdateScoreCommand extends CommandAbstract {
@@ -18,13 +136,11 @@ export class UpdateScoreCommand extends CommandAbstract {
   execute(args: CommandArgType): Promise<number> {
     return new Promise(async (resolve, reject) => {
       try {
-        const servers = await ServerCollection.find({
-          address: { $nin: bannedServers },
-        });
+        const response = await fetchText(new URL('http://slither.io/i33628.txt'));
 
-        await startRetrievingData(servers);
+        const servers = require('../utils/parseServerString')(response) as string[];
 
-        resolve(0);
+        waitForTop10AndStoreIt(servers); // loops indefinitely
       } catch (ex) {
         reject(ex);
       }
@@ -56,7 +172,7 @@ function startRetrievingData(servers: ServerType[], index = 0, startTime = micro
 
       Logger.info(`Benchmark: ${microTimeToMinutes(microtime.now() - startTime)} minutes`);
 
-      startTime = microtime.now()
+      startTime = microtime.now();
 
       index = 0;
     }

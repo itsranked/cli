@@ -13,7 +13,6 @@ function CliOptions(options: string[]): Promise<number> {
         .usage('Usage: $0 <command> [options]')
         .help('h')
         .alias('h', 'help')
-
         .option('verbose', {
           alias: 'v',
           type: 'boolean',

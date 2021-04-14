@@ -11,6 +11,7 @@ export class UpdateServerListCommand extends CommandAbstract {
     _yargs.options({
       url: {
         alias: 'u',
+        type: 'string',
         describe: 'define url for server addresses',
         default: 'http://slither.io/i33628.txt',
       },

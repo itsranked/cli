@@ -1,4 +1,4 @@
-const nickName = 'itsranked.net';
+const nickName = '[itsranked.net]';
 
 function getUsernamePacket() {
     return Buffer.from(
