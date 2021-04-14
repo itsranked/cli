@@ -1,13 +1,10 @@
-import microtime from 'microtime';
 import yargs from 'yargs';
 import CommandAbstract, { CommandArgType } from '../common/command';
 import Logger from '../common/logger';
 import ScoreCollection from '../db/collections/score';
-import { ServerType } from '../db/collections/server';
 import Command from '../decorators/command';
 import settings from '../settings.json';
 import fetchText from '../utils/fetch-text';
-import saveTop100 from './json-commands/save-top100';
 
 const WebSocketClient = require('../lib/websocket/websocket-client.js');
 const parseBinaryData = require('../utils/parse-binary-data.js');
@@ -27,7 +24,7 @@ async function spawnConnection(server: string, onScore: (data: any[]) => void) {
   }
 
   client.on('connectFailed', (err: any) => {
-    Logger.error('connectFailed', err);
+    Logger.error(`${server} Connection error`, err.toString());
     restart();
   });
 
