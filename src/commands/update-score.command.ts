@@ -1,3 +1,4 @@
+import microtime from 'microtime';
 import yargs from 'yargs';
 import CommandAbstract, { CommandArgType } from '../common/command';
 import Logger from '../common/logger';
@@ -18,7 +19,7 @@ export class UpdateScoreCommand extends CommandAbstract {
     return new Promise(async (resolve, reject) => {
       try {
         const servers = await ServerCollection.find({
-          server: { $nin: bannedServers },
+          address: { $nin: bannedServers },
         });
 
         await startRetrievingData(servers);
@@ -43,11 +44,19 @@ function writeJsonFiles() {
   });
 }
 
-function startRetrievingData(servers: ServerType[], index = 0) {
+function microTimeToMinutes(microtime: number) {
+  return `${microtime / 1000 / 1000 / 60}s`;
+}
+
+function startRetrievingData(servers: ServerType[], index = 0, startTime = microtime.now()) {
   return new Promise(async (resolve, reject) => {
     if (index === servers.length) {
       Logger.info('writing files...');
       await writeJsonFiles();
+
+      Logger.info(`Benchmark: ${microTimeToMinutes(microtime.now() - startTime)} minutes`);
+
+      startTime = microtime.now()
 
       index = 0;
     }
@@ -60,7 +69,7 @@ function startRetrievingData(servers: ServerType[], index = 0) {
       Logger.error('connectFailed', err);
 
       setTimeout(async () => {
-        startRetrievingData(servers, index + 1);
+        startRetrievingData(servers, index + 1, startTime);
       }, 1000);
     });
 
@@ -75,7 +84,7 @@ function startRetrievingData(servers: ServerType[], index = 0) {
       connection.on('close', (reason: any) => {
         return new Promise((_resolve) => {
           setTimeout(() => {
-            _resolve(startRetrievingData(servers, index + 1));
+            _resolve(startRetrievingData(servers, index + 1, startTime));
           }, 1000);
         });
       });
