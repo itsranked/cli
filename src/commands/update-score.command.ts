@@ -113,8 +113,6 @@ function waitForTop10AndStoreIt(servers: string[]) {
       }
 
       if (dataToSave.length > 0) {
-        Logger.info(`Saving ${dataToSave.length} scores`);
-
         await ScoreCollection.save(dataToSave);
       }
     }
