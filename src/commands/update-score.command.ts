@@ -1,10 +1,10 @@
 import yargs from 'yargs';
 import CommandAbstract, { CommandArgType } from '../common/command';
+import Logger from '../common/logger';
 import ScoreCollection from '../db/collections/score';
 import ServerCollection, { ServerType } from '../db/collections/server';
 import Command from '../decorators/command';
-import saveTop100LastMonthGlobal from './json-commands/save-top100-lastMonth-global';
-import saveTop100LastMonthRegion from './json-commands/save-top100-lastMonth-region';
+import saveTop100 from './json-commands/save-top100';
 
 const WebSocketClient = require('../lib/websocket/websocket-client.js');
 const parseBinaryData = require('../utils/parse-binary-data.js');
@@ -31,10 +31,9 @@ export class UpdateScoreCommand extends CommandAbstract {
 function writeJsonFiles() {
   return new Promise(async resolve => {
     try {
-      await saveTop100LastMonthGlobal();
-      await saveTop100LastMonthRegion();
+      await saveTop100();
     } catch (ex) {
-      console.log('writeJsonFiles', ex);
+      Logger.error('writeJsonFiles', ex);
     } finally {
       resolve(null);
     }
@@ -44,19 +43,18 @@ function writeJsonFiles() {
 function startRetrievingData(servers: ServerType[], index = 0) {
   return new Promise(async (resolve, reject) => {
     if (index === servers.length) {
+      Logger.info('writing files...');
       await writeJsonFiles();
+
       index = 0;
     }
 
     const server = servers[index];
 
-    console.log('retrieving data from ' + server.address);
-
     const client = new WebSocketClient(servers);
 
     client.on('connectFailed', (err: any) => {
-      console.log('connectFailed', err);
-      console.log('failed');
+      Logger.error('connectFailed', err);
 
       setTimeout(async () => {
         startRetrievingData(servers, index + 1);
@@ -67,7 +65,7 @@ function startRetrievingData(servers: ServerType[], index = 0) {
       connection.sendBytes(Buffer.from(new Uint8Array([0x63])));
 
       connection.on('error', (error: any) => {
-        console.log('error', error);
+        Logger.error('connection error', error);
         startRetrievingData(servers, index + 1);
       });
 
@@ -94,7 +92,7 @@ function startRetrievingData(servers: ServerType[], index = 0) {
               try {
                 await ScoreCollection.save(scoreList);
               } catch (ex) {
-                console.log(ex);
+                Logger.error('error saving scores', ex);
               }
             }
             connection.close();
@@ -103,7 +101,7 @@ function startRetrievingData(servers: ServerType[], index = 0) {
       });
     });
 
-    console.log('connecting to ' + server.address);
+    Logger.info(`connecting to ${server.address}`);
     client.connect(`ws://${server.address}/slither`, null, 'http://slither.io', null, {});
   });
 }

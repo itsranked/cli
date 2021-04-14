@@ -1,6 +1,5 @@
 import yargs from 'yargs';
-import { SaveTop100LastMonthRegion } from './commands/save-top100-last-month-region.command';
-import { SaveTop100LastMonth } from './commands/save-top100-last-month.command';
+import { SaveTop100Command } from './commands/save-top100.command';
 import { UpdateScoreCommand } from './commands/update-score.command';
 import { UpdateServerListCommand } from './commands/update-server-list.command';
 import { CommandRegistry } from './common/registry';
@@ -34,8 +33,7 @@ function CliOptions(options: string[]): Promise<number> {
 
       CommandRegistry.getInstance().addCommand(new UpdateServerListCommand(yargsInstance));
       CommandRegistry.getInstance().addCommand(new UpdateScoreCommand(yargsInstance));
-      CommandRegistry.getInstance().addCommand(new SaveTop100LastMonth(yargsInstance));
-      CommandRegistry.getInstance().addCommand(new SaveTop100LastMonthRegion(yargsInstance));
+      CommandRegistry.getInstance().addCommand(new SaveTop100Command(yargsInstance));
 
       yargsInstance.parse();
     } catch (ex) {

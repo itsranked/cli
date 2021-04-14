@@ -24,7 +24,7 @@ export default class ScoreCollection {
   }
 
   static aggregate(pipeline: object[]) {
-    return new Promise<any>(async (resolve, reject) => {
+    return new Promise<ScoreType[]>(async (resolve, reject) => {
       try {
         const result = await ScoreCollection.ScoreCollectionInstance.aggregate(pipeline);
 

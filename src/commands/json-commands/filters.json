@@ -1,0 +1,32 @@
+[
+  {
+    "name": "filters.global",
+    "shortName": "ALL",
+    "regex": ""
+  },
+  {
+    "name": "filters.south_america",
+    "shortName": "SA",
+    "regex": "^185.50"
+  },
+  {
+    "name": "filters.united_kingdom",
+    "shortName": "UK",
+    "regex": "^145.239"
+  },
+  {
+    "name": "filters.germany",
+    "shortName": "DE",
+    "regex": "^176.9|^213.239|^46.4|^78.46"
+  },
+  {
+    "name": "filters.north_america",
+    "shortName": "NA",
+    "regex": "^147.135|^149.56|^206.191|^63.251|^66.165|^158.69|^63.251|^66.165"
+  },
+  {
+    "name": "filters.asia",
+    "shortName": "ASIA",
+    "regex": "^209.58|^31.204|^43.249"
+  }
+]
