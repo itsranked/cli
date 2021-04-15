@@ -1,24 +1,15 @@
 import fs from 'fs';
 import Logger from '../../common/logger';
 import ScoreCollection, { ScoreType } from '../../db/collections/score';
+import defaultSettings from '../../settings.json';
+import getFileName from '../../utils/get-filename';
 import filters from './filters.json';
 import getTop100Aggregation from './get-top100-aggregation';
-import defaultSettings from '../../settings.json';
 
 type FilterType = typeof filters[0];
+type SettingsType = typeof defaultSettings;
 
-const isProduction = fs.existsSync('/home/ubuntu');
-
-function getFileName(prefix: string, shortName: string) {
-  const path = isProduction ? '/home/ubuntu/itsranked-ui-dist/' : '';
-  const fileName = `top100-${prefix}-${shortName}.json`;
-
-  Logger.info('writing score to ' + path + fileName);
-
-  return path + fileName;
-}
-
-function getJson(scores: ScoreType[]) {
+function getScoresWithPosition(scores: ScoreType[]) {
   return JSON.stringify(
     scores.map((entry: any, index: number) => ({
       position: index + 1,
@@ -27,14 +18,13 @@ function getJson(scores: ScoreType[]) {
   );
 }
 
-async function getTop100ByDateAndFilter(date: Date, filter: FilterType) {
+function writeScores(file: string, scores: ScoreType[]) {
+  Logger.info(`writing ${scores.length} scores to ${file}`);
 
-  if (!fs.existsSync('settings.json')) {
-    fs.writeFileSync('settings.json', JSON.stringify(defaultSettings));
-  }
+  fs.writeFileSync(file, getScoresWithPosition(scores));
+}
 
-  const settings = JSON.parse(fs.readFileSync('settings.json').toString());
-
+async function getTop100ByDateAndFilter(settings: SettingsType, date: Date, filter: FilterType) {
   const aggregation = getTop100Aggregation({
     timestamp: { $gte: date },
     userName: { $nin: settings.bannedUsers },
@@ -50,7 +40,7 @@ async function getTop100ByDateAndFilter(date: Date, filter: FilterType) {
   return await ScoreCollection.aggregate(aggregation);
 }
 
-async function saveTop100Monthly(filter: FilterType) {
+async function saveTop100Monthly(settings: SettingsType, filter: FilterType) {
   const currentDate = new Date();
   currentDate.setUTCDate(1);
   currentDate.setUTCHours(0);
@@ -58,14 +48,14 @@ async function saveTop100Monthly(filter: FilterType) {
   currentDate.setUTCSeconds(0);
   currentDate.setUTCMilliseconds(0);
 
-  const result = await getTop100ByDateAndFilter(currentDate, filter);
+  const result = await getTop100ByDateAndFilter(settings, currentDate, filter);
 
-  const fileName = getFileName('monthly', filter.shortName);
+  const fileName = getFileName(settings.outputDir, 'monthly', filter.shortName);
 
-  fs.writeFileSync(fileName, getJson(result));
+  writeScores(fileName, result);
 }
 
-async function saveTop100Weekly(filter: FilterType) {
+async function saveTop100Weekly(settings: SettingsType, filter: FilterType) {
   const currentDate = new Date();
 
   currentDate.setUTCDate(currentDate.getUTCDate() - currentDate.getUTCDay());
@@ -74,54 +64,54 @@ async function saveTop100Weekly(filter: FilterType) {
   currentDate.setUTCSeconds(0);
   currentDate.setUTCMilliseconds(0);
 
-  const result = await getTop100ByDateAndFilter(currentDate, filter);
+  const result = await getTop100ByDateAndFilter(settings, currentDate, filter);
 
-  const fileName = getFileName('weekly', filter.shortName);
+  const fileName = getFileName(settings.outputDir, 'weekly', filter.shortName);
 
-  fs.writeFileSync(fileName, getJson(result));
+  writeScores(fileName, result);
 }
 
-async function saveTop100Daily(filter: FilterType) {
+async function saveTop100Daily(settings: SettingsType, filter: FilterType) {
   const currentDate = new Date();
   currentDate.setUTCHours(0);
   currentDate.setUTCMinutes(0);
   currentDate.setUTCSeconds(0);
   currentDate.setUTCMilliseconds(0);
 
-  const result = await getTop100ByDateAndFilter(currentDate, filter);
+  const result = await getTop100ByDateAndFilter(settings, currentDate, filter);
 
-  const fileName = getFileName('daily', filter.shortName);
+  const fileName = getFileName(settings.outputDir, 'daily', filter.shortName);
 
-  fs.writeFileSync(fileName, getJson(result));
+  writeScores(fileName, result);
 }
 
-async function saveTop100Hourly(filter: FilterType) {
+async function saveTop100Hourly(settings: SettingsType, filter: FilterType) {
   const currentDate = new Date();
   currentDate.setUTCMinutes(0);
   currentDate.setUTCSeconds(0);
   currentDate.setUTCMilliseconds(0);
 
-  const result = await getTop100ByDateAndFilter(currentDate, filter);
+  const result = await getTop100ByDateAndFilter(settings, currentDate, filter);
 
-  const fileName = getFileName('hourly', filter.shortName);
+  const fileName = getFileName(settings.outputDir, 'hourly', filter.shortName);
 
-  fs.writeFileSync(fileName, getJson(result));
+  writeScores(fileName, result);
 }
 
-export default async function saveTop100(index = 0) {
+export default async function saveTop100(settings: SettingsType, index: number = 0) {
   if (index === filters.length) {
     return Promise.resolve();
   }
 
   const filter = filters[index];
 
-  await saveTop100Hourly(filter);
+  await saveTop100Hourly(settings, filter);
 
-  await saveTop100Daily(filter);
+  await saveTop100Daily(settings, filter);
 
-  await saveTop100Weekly(filter);
+  await saveTop100Weekly(settings, filter);
 
-  await saveTop100Monthly(filter);
+  await saveTop100Monthly(settings, filter);
 
-  await saveTop100(index + 1);
+  await saveTop100(settings, index + 1);
 }

@@ -9,6 +9,7 @@ export default class Collection<T> {
     if (!client.isConnected()) {
       Logger.info('Connecting to ' + this.database + '/' + this.collection );
       await client.connect();
+      Logger.info('connected!');
     }
   }
 

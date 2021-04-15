@@ -20,10 +20,12 @@
     "tsc:watch": "tsc --watch"
   },
   "dependencies": {
+    "@types/lodash": "^4.14.168",
     "@types/microtime": "^2.1.0",
     "@types/moment": "^2.13.0",
     "@types/mongodb": "^3.6.12",
     "bufferutil": "^4.0.3",
+    "lodash": "^4.17.21",
     "microtime": "^3.0.0",
     "moment": "^2.29.1",
     "mongodb": "^3.6.6",

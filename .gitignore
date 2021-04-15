@@ -109,4 +109,4 @@ temp/
 
 # End of https://www.gitignore.io/api/node
 top100-*.json
-settings.json
+/settings.json
