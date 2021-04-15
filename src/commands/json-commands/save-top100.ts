@@ -1,10 +1,9 @@
 import fs from 'fs';
 import Logger from '../../common/logger';
 import ScoreCollection, { ScoreType } from '../../db/collections/score';
-import bannedServers from './banned-servers.json';
-import bannedUsers from './banned-users.json';
 import filters from './filters.json';
 import getTop100Aggregation from './get-top100-aggregation';
+import defaultSettings from '../../settings.json';
 
 type FilterType = typeof filters[0];
 
@@ -27,15 +26,22 @@ function getJson(scores: ScoreType[]) {
 }
 
 async function getTop100ByDateAndFilter(date: Date, filter: FilterType) {
+
+  if (!fs.existsSync('settings.json')) {
+    fs.writeFileSync('settings.json', JSON.stringify(defaultSettings));
+  }
+
+  const settings = JSON.parse(fs.readFileSync('settings.json').toString());
+
   const aggregation = getTop100Aggregation({
     timestamp: { $gte: date },
-    userName: { $nin: bannedUsers },
+    userName: { $nin: settings.bannedUsers },
     server: { $regex: filter.regex },
   });
 
   aggregation.splice(1, 0, {
     $match: {
-      server: { $nin: bannedServers },
+      server: { $nin: settings.bannedServers },
     },
   });
 
