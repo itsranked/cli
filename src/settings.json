@@ -2,5 +2,5 @@
   "intervalDuringWritesInSeconds": 60,
   "minimumScoreToRank": 5000,
   "bannedUsers": ["F L A M E  T H R O W E R"],
-  "bannedServers": ["147.135.15.106:444", "209.58.183.133:444", "185.50.104.178:443", "185.50.104.168:443", "185.50.104.168:446", "185.50.104.153:444", "43.249.37.135:444"]
+  "bannedServers": []
 }

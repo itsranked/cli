@@ -8,10 +8,17 @@ export default class Logger {
     Logger.LOGGER.apply(null, args);
   }
 
+  static warn(...args: any[]) {
+    if (yargs.parsed) {
+      const params = [`[${moment().format('MM/DD/YY H:mm:ss')}] [WARN]`].concat(args);
+      Logger.LOGGER.apply(null, params);
+    }
+  }
+
   static info(...args: any[]) {
     if (yargs.parsed) {
       if (yargs.parsed.argv.verbose) {
-        const params = [`[${moment().format('MM/DD/YY H:m:s')}] [INFO]`].concat(args);
+        const params = [`[${moment().format('MM/DD/YY H:mm:ss')}] [INFO]`].concat(args);
         Logger.LOGGER.apply(null, params);
       }
     }
@@ -19,10 +26,8 @@ export default class Logger {
 
   static error(...args: any[]) {
     if (yargs.parsed) {
-      if (yargs.parsed.argv.verbose) {
-        const params = [`[${moment().format('MM/DD/YY H:m:s')}] [ERROR]`].concat(args);
-        Logger.LOGGER.apply(null, params);
-      }
+      const params = [`[${moment().format('MM/DD/YY H:mm:ss')}] [ERROR]`].concat(args);
+      Logger.LOGGER.apply(null, params);
     }
   }
 }

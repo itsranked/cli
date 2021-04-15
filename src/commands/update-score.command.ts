@@ -1,3 +1,4 @@
+import microtime from 'microtime';
 import yargs from 'yargs';
 import CommandAbstract, { CommandArgType } from '../common/command';
 import Logger from '../common/logger';
@@ -9,23 +10,62 @@ import fetchText from '../utils/fetch-text';
 const WebSocketClient = require('../lib/websocket/websocket-client.js');
 const parseBinaryData = require('../utils/parse-binary-data.js');
 
-async function spawnConnection(server: string, onScore: (data: any[]) => void) {
+async function spawnConnection(
+  server: string,
+  onScore: (data: any[]) => void,
+  connectionResetCounter = 0,
+  firstErrorTime = 0,
+) {
   const client = new WebSocketClient();
   let receivedPong = false;
   let receivedLeaderboard = false;
-
   let pingInterval: NodeJS.Timeout;
 
-  function restart() {
+  function restart(waitTime = 1000) {
+    clearInterval(pingInterval);
+
     setTimeout(async () => {
-      clearInterval(pingInterval);
-      spawnConnection(server, onScore);
-    }, 1000);
+      spawnConnection(server, onScore, connectionResetCounter, firstErrorTime);
+    }, waitTime);
   }
 
   client.on('connectFailed', (err: any) => {
-    Logger.error(`${server} Connection error`, err.toString());
-    restart();
+    switch (err.code) {
+      case 'ETIMEDOUT':
+        restart(1000 * 60 * 30); // 30 minutes
+        break;
+
+      case 'ECONNRESET':
+        if (connectionResetCounter === 0) {
+          firstErrorTime = microtime.now();
+        }
+
+        const timeDiff = (microtime.now() - firstErrorTime) / 1000;
+
+        if (connectionResetCounter >= 5 && timeDiff < 1000 * 30) {
+          connectionResetCounter = 0;
+          firstErrorTime = 0;
+
+          Logger.warn(`Server ${server} flagged!`);
+
+          restart(1000 * 60 * 30); // 30 minutes
+        } else {
+          connectionResetCounter++;
+
+          if (timeDiff > 1000 * 120) {
+            connectionResetCounter = 0;
+          }
+
+          Logger.error(`${server} Connection failed for ${connectionResetCounter} time`, err.toString());
+
+          restart();
+        }
+        break;
+
+      default:
+        Logger.error(`${server} Connection failed`, err);
+        restart();
+    }
   });
 
   client.on('connect', (connection: any) => {
@@ -43,12 +83,17 @@ async function spawnConnection(server: string, onScore: (data: any[]) => void) {
     connection.sendBytes(Buffer.from(new Uint8Array([0x63]))); // Start handshake
 
     connection.on('error', (error: any) => {
-      Logger.error(`${server} Connection error`, error.toString());
+      Logger.error(`${server} Connection error`, error);
       restart();
     });
 
-    connection.on('close', () => {
-      restart();
+    connection.on('close', (reason: number, ...args: unknown[]) => {
+      if (reason === 1000 || reason === 1006) {
+        restart();
+      } else {
+        Logger.error(reason, args);
+        restart();
+      }
     });
 
     connection.on('message', async (message: any) => {
@@ -86,7 +131,7 @@ function waitForTop10AndStoreIt(servers: string[]) {
   const scores = [] as any[];
 
   servers
-    .filter((server) => !settings.bannedServers.includes(server))
+    .filter((server) => !(settings.bannedServers as string[]).includes(server))
     .forEach((server) => {
       spawnConnection(server, (data: any[]) => {
         const totalScore = data.reduce((result, entry) => result + entry.score, 0);
