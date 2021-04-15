@@ -35,6 +35,10 @@ async function spawnConnection(
         restart(1000 * 60 * 30); // 30 minutes
         break;
 
+      case 'EHOSTUNREACH':
+        restart(1000 * 60 * 60); // 1 hour
+        break;
+
       case 'ECONNRESET':
         if (connectionResetCounter === 0) {
           firstErrorTime = microtime.now();
