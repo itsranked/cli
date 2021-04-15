@@ -10,7 +10,7 @@ type FilterType = typeof filters[0];
 const isProduction = fs.existsSync('/home/ubuntu/website/build');
 
 function getFileName(prefix: string, shortName: string) {
-  const path = isProduction ? '/home/ubuntu/website/build/' : '';
+  const path = isProduction ? '/home/ubuntu/itsranked-ui-dist/' : '';
   const fileName = `top100-${prefix}-${shortName}.json`;
 
   return path + fileName;
