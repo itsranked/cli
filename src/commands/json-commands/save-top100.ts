@@ -7,7 +7,7 @@ import defaultSettings from '../../settings.json';
 
 type FilterType = typeof filters[0];
 
-const isProduction = fs.existsSync('/home/ubuntu/website/build');
+const isProduction = fs.existsSync('/home/ubuntu');
 
 function getFileName(prefix: string, shortName: string) {
   const path = isProduction ? '/home/ubuntu/itsranked-ui-dist/' : '';
