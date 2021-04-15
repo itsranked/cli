@@ -171,6 +171,8 @@ function waitForTop10AndStoreIt(servers: string[]) {
   setTimeout(() => {
     saveScores();
   }, 1000);
+
+  saveScores();
 }
 
 @Command('update-score', 'Updates scores')

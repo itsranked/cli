@@ -13,6 +13,8 @@ function getFileName(prefix: string, shortName: string) {
   const path = isProduction ? '/home/ubuntu/itsranked-ui-dist/' : '';
   const fileName = `top100-${prefix}-${shortName}.json`;
 
+  Logger.info('writing score to ' + path + fileName);
+
   return path + fileName;
 }
 
@@ -113,19 +115,11 @@ export default async function saveTop100(index = 0) {
 
   const filter = filters[index];
 
-  Logger.info(`Writing hourly file for ${filter.shortName}`);
-
   await saveTop100Hourly(filter);
-
-  Logger.info(`Writing daily file for ${filter.shortName}`);
 
   await saveTop100Daily(filter);
 
-  Logger.info(`Writing weekly file for ${filter.shortName}`);
-
   await saveTop100Weekly(filter);
-
-  Logger.info(`Writing monthly file for ${filter.shortName}`);
 
   await saveTop100Monthly(filter);
 
