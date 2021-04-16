@@ -11,6 +11,10 @@ export type ScoreType = {
 export default class ScoreCollection {
   private static ScoreCollectionInstance = new Collection<ScoreType>('slitherio', 'score');
 
+  static connectIfNotConnected() {
+    return ScoreCollection.ScoreCollectionInstance.makeSureItsConnected();
+  }
+
   static save(scoreList: ScoreType[]) {
     return new Promise<InsertWriteOpResult<any>>(async (resolve, reject) => {
       try {

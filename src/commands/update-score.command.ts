@@ -56,7 +56,7 @@ async function spawnConnection(
         } else {
           connectionResetCounter++;
 
-          if (timeDiff > 1000 * 120) {
+          if (timeDiff > 1000 * 240) {
             connectionResetCounter = 0;
           }
 
@@ -185,6 +185,8 @@ export class UpdateScoreCommand extends CommandAbstract {
         const response = await fetchText(new URL('http://slither.io/i33628.txt'));
 
         const servers = require('../utils/parseServerString')(response) as string[];
+
+        await ScoreCollection.connectIfNotConnected();
 
         waitForTop10AndStoreIt(servers); // loops indefinitely
       } catch (ex) {

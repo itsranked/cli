@@ -1,15 +1,20 @@
-import { AggregationCursor, CollectionAggregationOptions, CollectionInsertManyOptions, Cursor, FilterQuery } from 'mongodb';
+import {
+  AggregationCursor,
+  CollectionAggregationOptions,
+  CollectionInsertManyOptions,
+  Cursor,
+  FilterQuery,
+} from 'mongodb';
 import Logger from '../common/logger';
 import client from '../db';
 
 export default class Collection<T> {
   constructor(private database: string = '', private collection: string = '') {}
 
-  async makeSureItsconnected() {
+  async makeSureItsConnected() {
     if (!client.isConnected()) {
-      Logger.info('Connecting to ' + this.database + '/' + this.collection );
+      Logger.info('Connecting to ' + this.database + '/' + this.collection);
       await client.connect();
-      Logger.info('connected!');
     }
   }
 
@@ -21,29 +26,20 @@ export default class Collection<T> {
       writeConcern: { w: 0, j: false },
     } as any,
   ) {
-    await this.makeSureItsconnected();
+    await this.makeSureItsConnected();
 
-    return client
-      .db(this.database)
-      .collection(this.collection)
-      .insertMany(docs, options);
+    return client.db(this.database).collection(this.collection).insertMany(docs, options);
   }
 
   async find(query?: FilterQuery<T>): Promise<Cursor<T>> {
-    await this.makeSureItsconnected();
+    await this.makeSureItsConnected();
 
-    return client
-      .db(this.database)
-      .collection(this.collection)
-      .find(query);
+    return client.db(this.database).collection(this.collection).find(query);
   }
 
   async aggregate(pipeline: object[], options?: CollectionAggregationOptions): Promise<AggregationCursor<T>> {
-    await this.makeSureItsconnected();
+    await this.makeSureItsConnected();
 
-    return client
-      .db(this.database)
-      .collection(this.collection)
-      .aggregate(pipeline, options);
+    return client.db(this.database).collection(this.collection).aggregate(pipeline, options);
   }
 }
