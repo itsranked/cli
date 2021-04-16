@@ -1,5 +1,5 @@
 {
-  "intervalDuringWritesInSeconds": 10,
+  "intervalDuringWritesInSeconds": 30,
   "minimumScoreToRank": 5000,
   "bannedUsers": ["F L A M E  T H R O W E R", " CACHORRO LOKO LENDA"],
   "bannedServers": [],
