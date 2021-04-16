@@ -6,8 +6,8 @@
   "author": "",
   "license": "UNLICENSED",
   "scripts": {
-    "nohup-score": "sudo nohup yarn start save-top100 -vk &> save-top100.log",
-    "nohup-bots": "sudo nohup yarn start update-score -v &> update-score.log",
+    "nohup-score": "echo \"sudo nohup yarn start save-top100 -vk &> save-top100.log\"",
+    "nohup-bots": "echo \"sudo nohup yarn start update-score -v &> update-score.log\"",
     "build": "npm-run-all clean tsc",
     "clean": "rimraf dist",
     "format": "yarn run prettier --write",
