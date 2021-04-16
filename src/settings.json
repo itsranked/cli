@@ -1,6 +1,8 @@
 {
   "intervalDuringWritesInSeconds": 30,
-  "minimumScoreToRank": 5000,
+  "minimumScoreToRank": 15000,
+  "minimumTop10ScoreToRank": 50000,
+  "badWords": "trump|bolsonaro|lula|biden|dick|pussy|gay|caralho|pinto|buceta|chupa|viado|meu cu|me come|white supremacy|black supremacy",
   "bannedUsers": ["F L A M E  T H R O W E R", " CACHORRO LOKO LENDA"],
   "bannedServers": [],
   "dev": {

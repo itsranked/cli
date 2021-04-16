@@ -4,11 +4,14 @@ import CommandAbstract, { CommandArgType } from '../common/command';
 import Logger from '../common/logger';
 import ScoreCollection from '../db/collections/score';
 import Command from '../decorators/command';
-import settings from '../settings.json';
+import defaultSettings from '../settings.json';
 import fetchText from '../utils/fetch-text';
+import getSettings from '../utils/get-settings';
 
 const WebSocketClient = require('../lib/websocket/websocket-client.js');
 const parseBinaryData = require('../utils/parse-binary-data.js');
+
+type SettingsType = typeof defaultSettings;
 
 async function spawnConnection(
   server: string,
@@ -131,7 +134,7 @@ async function spawnConnection(
   client.connect(`ws://${server}/slither`, null, 'http://slither.io', null, {});
 }
 
-function waitForTop10AndStoreIt(servers: string[]) {
+function waitForTop10AndStoreIt(servers: string[], settings: SettingsType) {
   const scores = [] as any[];
 
   servers
@@ -139,9 +142,8 @@ function waitForTop10AndStoreIt(servers: string[]) {
     .forEach((server) => {
       spawnConnection(server, (data: any[]) => {
         const totalScore = data.reduce((result, entry) => result + entry.score, 0);
-        const avgScore = totalScore / data.length;
 
-        if (avgScore >= settings.minimumScoreToRank) {
+        if (totalScore >= settings.minimumTop10ScoreToRank) {
           scores.push.apply(scores, data);
         }
       });
@@ -150,10 +152,16 @@ function waitForTop10AndStoreIt(servers: string[]) {
   async function saveScores() {
     const dataToSave = [] as any[];
 
+    const settings = getSettings();
+
     if (scores.length > 0) {
       while (scores.length > 0) {
         const entry = scores.shift();
-        if (entry.userName.trim() !== '' && entry.score > settings.minimumScoreToRank) {
+        if (
+          entry.userName.trim() !== '' &&
+          !new RegExp(settings.badWords, 'i').test(entry.userName) &&
+          entry.score > settings.minimumScoreToRank
+        ) {
           dataToSave.push(entry);
         }
       }
@@ -182,13 +190,15 @@ export class UpdateScoreCommand extends CommandAbstract {
   execute(args: CommandArgType): Promise<number> {
     return new Promise(async (resolve, reject) => {
       try {
+        const settings = getSettings();
+
         const response = await fetchText(new URL('http://slither.io/i33628.txt'));
 
         const servers = require('../utils/parseServerString')(response) as string[];
 
         await ScoreCollection.connectIfNotConnected();
 
-        waitForTop10AndStoreIt(servers); // loops indefinitely
+        waitForTop10AndStoreIt(servers, settings); // loops indefinitely
       } catch (ex) {
         reject(ex);
       }
