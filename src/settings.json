@@ -6,7 +6,7 @@
   "bannedUsers": ["F L A M E  T H R O W E R", " CACHORRO LOKO LENDA"],
   "bannedServers": [],
   "dev": {
-    "jsonDir": ""
+    "jsonDir": "dist/"
   },
   "production": {
     "jsonDir": "/home/ubuntu/itsranked-ui-dist/"

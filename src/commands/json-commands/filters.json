@@ -28,5 +28,10 @@
     "name": "filters.asia",
     "shortName": "ASIA",
     "regex": "^209.58|^31.204|^43.249"
+  },
+  {
+    "name": "filters.oceania",
+    "shortName": "OCEANIA",
+    "regex": "^139.99.130.166"
   }
 ]

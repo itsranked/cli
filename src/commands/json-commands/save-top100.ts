@@ -40,21 +40,6 @@ async function getTop100ByDateAndFilter(settings: SettingsType, date: Date, filt
   return await ScoreCollection.aggregate(aggregation);
 }
 
-async function saveTop100Monthly(settings: SettingsType, filter: FilterType) {
-  const currentDate = new Date();
-  currentDate.setUTCDate(1);
-  currentDate.setUTCHours(0);
-  currentDate.setUTCMinutes(0);
-  currentDate.setUTCSeconds(0);
-  currentDate.setUTCMilliseconds(0);
-
-  const result = await getTop100ByDateAndFilter(settings, currentDate, filter);
-
-  const fileName = getFileName(settings.outputDir, 'monthly', filter.shortName);
-
-  writeScores(fileName, result);
-}
-
 async function saveTop100Weekly(settings: SettingsType, filter: FilterType) {
   const currentDate = new Date();
 
@@ -110,8 +95,6 @@ export default async function saveTop100(settings: SettingsType, index: number =
   await saveTop100Daily(settings, filter);
 
   await saveTop100Weekly(settings, filter);
-
-  await saveTop100Monthly(settings, filter);
 
   await saveTop100(settings, index + 1);
 }
